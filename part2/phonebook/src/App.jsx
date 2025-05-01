@@ -5,11 +5,15 @@ const App = () => {
     { name: 'Arto Hellas' }
   ]) 
   const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
 
-  const handleChange = (event) => {
+  const handleNameChange = (event) => {
     setNewName(event.target.value)
   }
 
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value)
+  }
   const handleSubmit = (event) => {
     event.preventDefault()
     if (persons.filter((person => person.name === newName)).length > 0) {
@@ -17,7 +21,7 @@ const App = () => {
       setNewName('')
       return
     }
-    const names = persons.concat({name: newName})
+    const names = persons.concat({name: newName, number: newNumber})
     setNewName('')
     setPersons(names)
   }
@@ -26,7 +30,10 @@ const App = () => {
       <h2>Phonebook</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          name: <input onChange={handleChange} value={newName}/>
+          name: <input onChange={handleNameChange} value={newName}/>
+        </div>
+        <div>
+          number: <input onChange={handleNumberChange} value={newNumber}/>
         </div>
         <div>
           <button type="submit">add</button>
@@ -35,7 +42,7 @@ const App = () => {
       <h2>Numbers</h2>
       <ul>
         {persons.map((person) => (
-          <li key={person.name}>{person.name}</li>
+          <li key={person.name}>{person.name} {person.number}</li>
         ))}
       </ul>
       

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import personServices from '../src/services/persons'
 
 const FilterNames = ({onChange}) => {
   return (
@@ -76,15 +77,14 @@ const App = () => {
       return
     }
 
-    axios
-    .post('http://localhost:3001/persons', {name: newName, number: newNumber})
+    personServices
+    .addPerson(newName, newNumber)
     .then((response) => {
       setPersons(persons.concat(response.data))
     })
 
     setNewName('')
     setNewNumber('')
-    setPersons(names)
   }
 
   useEffect(() => {

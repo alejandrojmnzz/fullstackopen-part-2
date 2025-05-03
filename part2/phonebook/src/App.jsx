@@ -27,13 +27,13 @@ const PersonForm = ({ handleSubmit, handleNameChange, handleNumberChange, newNam
   )
 }
 
-const Persons = ({ persons, filter }) => {
+const Persons = ({ persons, filter, handleDelete }) => {
   if (filter) {
     return (
       <div>
         {filter.map((person) => (
           <p key={person.name}>
-            {person.name} {person.number}
+            {person.name} {person.number} <button onClick={() => handleDelete(person.id)}>delete</button>
           </p>
         ))}
       </div>
@@ -43,7 +43,7 @@ const Persons = ({ persons, filter }) => {
     <div>
       {persons.map((person) => (
         <p key={person.name}>
-          {person.name} {person.number}
+          {person.name} {person.number} <button onClick={() => handleDelete(person.id)}>delete</button>
         </p>
       ))}
     </div>
@@ -87,6 +87,22 @@ const App = () => {
     setNewNumber('')
   }
 
+  const handleDelete = (id) => {
+    const changedPersons = persons.filter((person) => person.id !== id)
+    console.log(id)
+
+    if (changedPersons.length === persons.length) {
+      alert('the note does not exists')
+      return
+    }
+
+    personServices
+      .deletePerson(id)
+      .then(() => {
+        setPersons(changedPersons)
+      })
+  }
+
   useEffect(() => {
     axios
     .get('http://localhost:3001/persons')
@@ -102,7 +118,7 @@ const App = () => {
       <h2>add a new</h2>
       <PersonForm handleSubmit={handleSubmit} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} newName={newName} newNumber={newNumber}/>
       <h2>Numbers</h2>
-      <Persons persons={persons} filter={filter}/>
+      <Persons persons={persons} filter={filter} handleDelete={handleDelete}/>
 
     </div>
   )

@@ -32,7 +32,7 @@ const Persons = ({ persons, filter, handleDelete }) => {
     return (
       <div>
         {filter.map((person) => (
-          <p key={person.name}>
+          <p key={person.id}>
             {person.name} {person.number} <button onClick={() => handleDelete(person.id)}>delete</button>
           </p>
         ))}
@@ -42,7 +42,7 @@ const Persons = ({ persons, filter, handleDelete }) => {
   return (
     <div>
       {persons.map((person) => (
-        <p key={person.name}>
+        <p key={person.id}>
           {person.name} {person.number} <button onClick={() => handleDelete(person.id)}>delete</button>
         </p>
       ))}
@@ -66,41 +66,63 @@ const App = () => {
   }
 
   const handleFilterChange = (event) => {
-    const filteredPersons = persons.filter((item) => item.name.toLowerCase().includes(event.target.value.toLowerCase()))
+    const filteredPersons = persons.filter((item) => item?.name?.toLowerCase().includes(event.target.value.toLowerCase()))
     setFilter(filteredPersons)
+  }
+
+  const handleUpdateName = (currentPerson) => {
+    const confirmation = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+   
+    if (confirmation) {
+      const id = currentPerson.id
+
+      personServices
+        .updateName(id, {name: newName, number: newNumber})
+        .then((updatedPerson) => {
+        setPersons(persons.map((person) => person.id === id ? updatedPerson : person))
+        setNewName('')
+      setNewNumber('')
+        })
+      return
+
+    }
   }
   const handleSubmit = (event) => {
     event.preventDefault()
-    if (persons.filter((person => person.name === newName)).length > 0) {
-      alert(`${newName} is already added to phonebook`)
-      setNewName('')
+    const currentPerson = persons.find((person => person.name === newName))
+
+    if (currentPerson) {
+      handleUpdateName(currentPerson)
       return
     }
 
     personServices
-    .addPerson(newName, newNumber)
-    .then((response) => {
-      setPersons(persons.concat(response.data))
-    })
+      .addPerson(newName, newNumber)
+      .then((response) => {
+        setPersons(persons.concat(response.data))
+      })
 
     setNewName('')
     setNewNumber('')
   }
 
   const handleDelete = (id) => {
-    const changedPersons = persons.filter((person) => person.id !== id)
-    console.log(id)
+    const confirmation = window.confirm('Are you sure?')
+    if (confirmation) {
+      const changedPersons = persons.filter((person) => person.id !== id)
 
-    if (changedPersons.length === persons.length) {
-      alert('the note does not exists')
-      return
+
+      if (changedPersons.length === persons.length) {
+        alert('the note does not exists')
+        return
+      }
+
+      personServices
+        .deletePerson(id)
+        .then(() => {
+          setPersons(changedPersons)
+        })
     }
-
-    personServices
-      .deletePerson(id)
-      .then(() => {
-        setPersons(changedPersons)
-      })
   }
 
   useEffect(() => {

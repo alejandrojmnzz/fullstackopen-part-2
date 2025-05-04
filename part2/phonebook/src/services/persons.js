@@ -9,4 +9,9 @@ function deletePerson(id) {
     return axios.delete(`${baseUrl}/${id}`)
 }
 
-export default { addPerson, deletePerson }
+function updateName(id, newNote) {
+    console.log(newNote)
+    return axios.put(`${baseUrl}/${id}`, newNote).then((response) => response.data)
+}
+
+export default { addPerson, deletePerson, updateName }

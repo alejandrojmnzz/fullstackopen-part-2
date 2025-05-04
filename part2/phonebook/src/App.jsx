@@ -3,7 +3,7 @@ import axios from 'axios'
 import personServices from '../src/services/persons'
 import './App.css'
 
-const FilterNames = ({onChange}) => {
+const FilterNames = ({ onChange }) => {
   return (
     <div>
       filter shown with <input onChange={onChange} />
@@ -12,19 +12,19 @@ const FilterNames = ({onChange}) => {
   )
 }
 
-const PersonForm = ({ handleSubmit, handleNameChange, handleNumberChange, newName, newNumber}) => {
+const PersonForm = ({ handleSubmit, handleNameChange, handleNumberChange, newName, newNumber }) => {
   return (
     <form onSubmit={handleSubmit}>
-        <div>
-          name: <input onChange={handleNameChange} value={newName} />
-        </div>
-        <div>
-          number: <input onChange={handleNumberChange} value={newNumber} />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
+      <div>
+        name: <input onChange={handleNameChange} value={newName} />
+      </div>
+      <div>
+        number: <input onChange={handleNumberChange} value={newNumber} />
+      </div>
+      <div>
+        <button type="submit">add</button>
+      </div>
+    </form>
   )
 }
 
@@ -51,14 +51,14 @@ const Persons = ({ persons, filter, handleDelete }) => {
   )
 }
 
-const Notification = ({ message }) => {
-  if (message === null) {
+const Notification = ({ notification }) => {
+  if (notification === null) {
     return null
   }
 
   return (
-    <div className="notification">
-      {message}
+    <div className={notification.type}>
+      {notification.message}
     </div>
   )
 }
@@ -85,103 +85,139 @@ const App = () => {
 
   const handleUpdateName = (currentPerson) => {
     const confirmation = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
-   
+
     if (confirmation) {
       const id = currentPerson.id
 
       personServices
-        .updateName(id, {name: newName, number: newNumber})
+        .updateName(id, { name: newName, number: newNumber })
         .then((updatedPerson) => {
-        setPersons(persons.map((person) => person.id === id ? updatedPerson : person))
+          setPersons(persons.map((person) => person.id === id ? updatedPerson : person))
 
-        setTimeout(() => {
-          setNotification(
-            `Person succesfuflly updated`
-          )
-        }, 1000)
+          setTimeout(() => {
+            setNotification(
+              {
+                message: `Person succesfuflly updated`,
+                type: 'success'
+              }
+            )
+          }, 1000)
 
-        new Promise(resolve => setTimeout(resolve, 5000))
+          new Promise(resolve => setTimeout(resolve, 5000))
+            .then(() => {
+              setNotification(null)
+            })
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch((error) => {
+          if (error.status == 404) {
+          setTimeout(() => {
+            setNotification(
+              {
+                message: 'Person not found',
+                type: 'error'
+              }
+            )
+          }, 1000)
+
+          new Promise(resolve => setTimeout(resolve, 5000))
+            .then(() => {
+              setNotification(null)
+            })
+          }
+          else {
+            setTimeout(() => {
+              setNotification(
+                {
+                  message: 'An error has ocurred',
+                  type: 'error'
+                }
+              )
+            }, 1000)
+  
+            new Promise(resolve => setTimeout(resolve, 5000))
+              .then(() => {
+                setNotification(null)
+              })
+          }
+        })
+  
+    }
+  }
+const handleSubmit = (event) => {
+  event.preventDefault()
+  const currentPerson = persons.find((person => person.name === newName))
+
+  if (currentPerson) {
+    handleUpdateName(currentPerson)
+    return
+  }
+
+  personServices
+    .addPerson(newName, newNumber)
+    .then((response) => {
+      setPersons(persons.concat(response.data))
+
+      setTimeout(() => {
+        setNotification(
+          {
+            message: `Person succesfuflly added`,
+            type: 'success'
+          }
+        )
+      }, 1000)
+
+      new Promise(resolve => setTimeout(resolve, 5000))
         .then(() => {
           setNotification(null)
         })
 
-      setNewName('')
-      setNewNumber('')
-        })
-      return
+    })
 
-    }
-  }
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    const currentPerson = persons.find((person => person.name === newName))
+  setNewName('')
+  setNewNumber('')
+}
 
-    if (currentPerson) {
-      handleUpdateName(currentPerson)
+const handleDelete = (id) => {
+  const confirmation = window.confirm('Are you sure?')
+  if (confirmation) {
+    const changedPersons = persons.filter((person) => person.id !== id)
+
+
+    if (changedPersons.length === persons.length) {
+      alert('the note does not exists')
       return
     }
 
     personServices
-      .addPerson(newName, newNumber)
-      .then((response) => {
-        setPersons(persons.concat(response.data))
-
-        setTimeout(() => {
-          setNotification(
-            `Person succesfuflly added`
-          )
-        }, 1000)
-
-        new Promise(resolve => setTimeout(resolve, 5000))
-        .then(() => {
-          setNotification(null)
-        })
-        
+      .deletePerson(id)
+      .then(() => {
+        setPersons(changedPersons)
       })
-
-    setNewName('')
-    setNewNumber('')
   }
+}
 
-  const handleDelete = (id) => {
-    const confirmation = window.confirm('Are you sure?')
-    if (confirmation) {
-      const changedPersons = persons.filter((person) => person.id !== id)
-
-
-      if (changedPersons.length === persons.length) {
-        alert('the note does not exists')
-        return
-      }
-
-      personServices
-        .deletePerson(id)
-        .then(() => {
-          setPersons(changedPersons)
-        })
-    }
-  }
-
-  useEffect(() => {
-    axios
+useEffect(() => {
+  axios
     .get('http://localhost:3001/persons')
     .then((response) => {
       setPersons(response.data)
     })
-  }, [])
+}, [])
 
-  return (
-    <div>
-      <h2>Phonebook</h2>
-      <FilterNames onChange={handleFilterChange}/>
-      <h2>add a new</h2>
-      <PersonForm handleSubmit={handleSubmit} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} newName={newName} newNumber={newNumber}/>
-      <Notification message={notification}/>
-      <h2>Numbers</h2>
-      <Persons persons={persons} filter={filter} handleDelete={handleDelete}/>
+return (
+  <div>
+    <h2>Phonebook</h2>
+    <FilterNames onChange={handleFilterChange} />
+    <h2>add a new</h2>
+    <PersonForm handleSubmit={handleSubmit} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} newName={newName} newNumber={newNumber} />
+    <Notification notification={notification} />
+    <h2>Numbers</h2>
+    <Persons persons={persons} filter={filter} handleDelete={handleDelete} />
 
-    </div>
-  )
+  </div>
+)
 }
 
 export default App

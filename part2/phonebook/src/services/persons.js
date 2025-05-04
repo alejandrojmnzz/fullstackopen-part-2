@@ -10,7 +10,6 @@ function deletePerson(id) {
 }
 
 function updateName(id, newNote) {
-    console.log(newNote)
     return axios.put(`${baseUrl}/${id}`, newNote).then((response) => response.data)
 }
 

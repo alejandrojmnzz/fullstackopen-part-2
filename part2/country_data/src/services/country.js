@@ -21,4 +21,12 @@ function getCountry(name) {
     return request.then((response) => response.data)
 }
 
-export default { postAllCountries, getAllCountries, getCountry }
+function getWeather(lat, lon) {
+    const apiKey = import.meta.env.VITE_SOME_KEY
+    
+    const request =axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`)
+
+    return request.then((response) => response.data)
+}
+
+export default { postAllCountries, getAllCountries, getCountry, getWeather }

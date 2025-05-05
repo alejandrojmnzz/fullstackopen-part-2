@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import countryServices from './services/country'
 import axios from 'axios'
 
-function Country({countries}) {
+function Country({countries, findCountry}) {
   if (countries.length === 0) {
     return
   }
@@ -15,7 +15,6 @@ function Country({countries}) {
         <h2>Languages</h2>
         <ul>
           {Object.values(countries[0].languages).map((item) => {
-            console.log(item)
             return (
               <li>{item}</li>
             )
@@ -30,7 +29,7 @@ function Country({countries}) {
       <ul>
         {
           countries.map((country) => (
-            <li>{country.name}</li>
+            <li>{country.name} <button onClick={() => findCountry(country.name)}>Show</button></li> 
           ))
         }
       </ul>
@@ -62,6 +61,12 @@ function App() {
     }
   }
 
+  function findCountry(name) {
+    countryServices
+      .getCountry(name)
+      .then((response) => setFilteredCountries([response]))
+  }
+
   useEffect(() => {
 
     countryServices
@@ -83,7 +88,7 @@ function App() {
   return (
     <>
       <p>find countries <input onChange={filterCountries}/></p>
-      <Country countries={filteredCountries} />
+      <Country countries={filteredCountries} findCountry={findCountry} />
     </>
   )
 }
